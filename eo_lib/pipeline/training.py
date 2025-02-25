@@ -91,7 +91,7 @@ class TrainingPipeline(L.LightningModule):
             train_loss,
             on_step=True,
             on_epoch=True,
-            sync_dist=True,
+            sync_dist=self.sync_dist,
             logger=True,
         )
 
@@ -186,7 +186,7 @@ class HPOProbingPipeline(PretrainingPipeline):
             val_metric,
             on_step=True,
             on_epoch=True,
-            sync_dist=True,
+            sync_dist=self.sync_dist,
             logger=True,
         )
 
