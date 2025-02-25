@@ -8,6 +8,7 @@ import torch
 from torch import optim
 from yacs.config import CfgNode as CN
 from eo_lib.pipeline.lr_scheduler import build_scheduler
+from eo_lib.utils.cuda import get_gpu_count
 
 
 logging.basicConfig(
@@ -15,7 +16,7 @@ logging.basicConfig(
 )
 
 
-class PretrainingPipeline(L.LightningModule):
+class TrainingPipeline(L.LightningModule):
     """Base class for pretraining pipelines in PyTorch Lightning."""
 
     def __init__(
@@ -36,7 +37,9 @@ class PretrainingPipeline(L.LightningModule):
         self.automatic_optimization: bool = automatic_optimization
         self._metric = metric
 
-        self.save_hyperparameters()
+    @property
+    def sync_dist(self) -> bool:
+        return True if get_gpu_count() > 1 else False
 
     def on_train_batch_end(self, out, batch, batch_idx):
         for name, param in self.named_parameters():
@@ -53,7 +56,6 @@ class PretrainingPipeline(L.LightningModule):
             on_epoch=True,
             on_step=False,
             prog_bar=True,
-            sync_dist=True,
             logger=True,
         )
         logging.info(f"Learning rate at the end of epoch {self.current_epoch} is {lr}")
@@ -65,7 +67,6 @@ class PretrainingPipeline(L.LightningModule):
             on_epoch=True,
             on_step=False,
             prog_bar=True,
-            sync_dist=True,
             logger=True,
         )
 
